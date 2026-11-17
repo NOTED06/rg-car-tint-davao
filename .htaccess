@@ -1,0 +1,48 @@
+# Security Headers
+<IfModule mod_headers.c>
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-XSS-Protection "1; mode=block"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# PHP Settings
+# NOTE: cookie_secure is handled dynamically in PHP (boot_session)
+# so it works on both HTTP (localhost) and HTTPS (production).
+<IfModule mod_php7.c>
+    php_value session.cookie_httponly 1
+    php_value session.use_only_cookies 1
+    php_value session.cookie_samesite "Lax"
+</IfModule>
+<IfModule mod_php.c>
+    php_value session.cookie_httponly 1
+    php_value session.use_only_cookies 1
+    php_value session.cookie_samesite "Lax"
+</IfModule>
+
+# Prevent directory listing
+Options -Indexes
+
+# Protect sensitive files
+<FilesMatch "\.(env|log|ini|conf|sql)$">
+    Require all denied
+</FilesMatch>
+
+<Files "db.php">
+    Require all denied
+</Files>
+
+<Files "setup_db.php">
+    Require all denied
+</Files>
+
+# Redirect to login if accessing admin.php directly
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    
+    # Redirect from admin.php to login if not authenticated (handled in PHP)
+    # This is just an additional security layer
+    
+    # Block access to .git directory
+    RewriteRule ^\.git - [F,L]
+</IfModule>
